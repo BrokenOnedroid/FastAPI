@@ -1,5 +1,6 @@
 import logging
 from fastapi import FastAPI, Depends, Request, Form, status
+from pydantic import BaseModel
 
 # ASGI Framework
 from starlette.responses import RedirectResponse, Response
@@ -11,7 +12,8 @@ templates = Jinja2Templates(directory="templates")
 # for usage of the db && model declartions
 from sqlalchemy.orm import Session
 
-import models
+# local .py 
+import crud, models, schemas
 from database import SessionLocal, engine
 
 # Configure logging
@@ -19,6 +21,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 # creating the db tabels
 models.Base.metadata.create_all(bind=engine)
+
+class EntryCreated(BaseModel):
+  id: int
 
 # FastAPI "instance"
 app = FastAPI()
@@ -40,13 +45,20 @@ def home(request: Request, db: Session = Depends(get_db)):
   return templates.TemplateResponse("base.html", {"request": request, "log_list": logs})
 
 @app.post("/add")
-def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)):
+def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> EntryCreated:
   # Create a new item
-  new_log = models.Logdb()
+  entry_id = crud.create_logdb_entry(db)
+  data_id = crud.create_entry(db, logdb_id=entry_id, new_entry=log_entry, new_code= "", app_id= 0)
+  return Response(status_code=status.HTTP_201_CREATED, media_type='Entry added: {data_id}')
 
-  db.add(new_log)
-  db.commit()
-  return Response(status_code=status.HTTP_201_CREATED, media_type='Entry added')
+
+
+# @app.post("/add")
+# def add(request: Request, log: schemas.LogEntryCreate, log_entry: str = Form(...), db: Session= Depends(get_db)) -> EntryCreated:
+#   # Create a new item
+#   entry_id = crud.create_logdb_entry(db)
+#   data_id = crud.create_logdb_entry(db, log, entry_id, log_entry)
+#   return Response(status_code=status.HTTP_201_CREATED, media_type='Entry added: {data_id}')
 
 
 # update existing todo entry
