@@ -1,8 +1,8 @@
 # for  Pydantic models that define more or less a "schema" (a valid data shape).
 from pydantic import BaseModel
 
-class LogBase(BaseModel):
-    id: int
-
-class LogEntryCreate(LogBase):
+class LogEntryCreate(BaseModel):
     logdb_id: int
+    entry: str
+    code: str = ""
+    app_id: int = 0

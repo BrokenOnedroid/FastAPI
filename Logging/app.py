@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, Request, Form, status
 from pydantic import BaseModel
 
 # ASGI Framework
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import RedirectResponse, Response, JSONResponse
 from starlette.templating import Jinja2Templates
 
 #local folder for html tmplate files
@@ -48,8 +48,10 @@ def home(request: Request, db: Session = Depends(get_db)):
 def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> EntryCreated:
   # Create a new item
   entry_id = crud.create_logdb_entry(db)
-  data_id = crud.create_entry(db, logdb_id=entry_id, new_entry=log_entry, new_code= "", app_id= 0)
-  return Response(status_code=status.HTTP_201_CREATED, media_type='Entry added: {data_id}')
+  log_entry_data = schemas.LogEntryCreate(logdb_id=entry_id, entry=log_entry)
+  data_id = crud.create_entry(db, log=log_entry_data)
+  response_data = {"EntryCreated": data_id}
+  return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=response_data)
 
 
 
