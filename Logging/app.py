@@ -1,10 +1,13 @@
 import logging
-from fastapi import FastAPI, Depends, Request, Form, status
+from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
 from pydantic import BaseModel
 
 # ASGI Framework
 from starlette.responses import RedirectResponse, Response, JSONResponse
 from starlette.templating import Jinja2Templates
+
+#Jspon Return for schemas.LogEntyData
+from fastapi.encoders import jsonable_encoder
 
 #local folder for html tmplate files
 templates = Jinja2Templates(directory="templates")
@@ -22,9 +25,6 @@ logging.basicConfig(level=logging.DEBUG)
 # creating the db tabels
 models.Base.metadata.create_all(bind=engine)
 
-class EntryCreated(BaseModel):
-  id: int
-
 # FastAPI "instance"
 app = FastAPI()
 
@@ -37,56 +37,108 @@ def get_db():
   finally:
     db.close()
      
+##################################################################################################################################################################
+#    API FUNCTIONS
+##################################################################################################################################################################    
+@app.post("/api/v1/add")
+def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
+  # Create a new item
+  entry_id = crud.create_logdb_entry(db=db)
+  log_entry_data = schemas.LogEntryCreate(logdb_id=entry_id, entry=log_entry)
+  data_id = crud.create_entry(db=db, log=log_entry_data)
+  response_data = {"EntryCreated": data_id}
+  return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=response_data)
 
-#homepage function
+@app.get("/api/v1/entry/{log_id}") 
+def entry_data(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogData:
+  """
+  gets all data of 1 Entry 
+  """
+  response_data = crud.get_entry_data(db=db, log_id=log_id)
+  
+  if response_data is None:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="{log_id} not found") 
+  
+  return JSONResponse(status_code=status.HTTP_302_FOUND, media_type='application/json', content=jsonable_encoder(response_data))
+
+# delete route API
+# Works with e.g. curl -X DELETE http://127.0.0.1:8000/api/v1/delete/1
+@app.delete("/api/v1/delete/{log_id}")
+def delte(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogEntryDelete:
+  """
+  delting log entry
+  checking befor if entry even exits
+  """
+  log = crud.check_entry_exists(db=db, log_id=log_id)
+
+  if log is None:
+    raise HTTPException(status_code=404, detail="{log_id} not found")
+  
+  crud.delete_log_entry(db=db, log_id=log_id)
+  return JSONResponse(content={"deleted": True}, status_code=status.HTTP_202_ACCEPTED)
+
+
+##################################################################################################################################################################
+#    UI FUNCTIONS
+##################################################################################################################################################################    
+
 @app.get("/")
 def home(request: Request, db: Session = Depends(get_db)):
+  """
+  homepage function gets all entries
+
+  todo add a macx amount and pages
+  """
   logs = db.query(models.Logdb).all()
   return templates.TemplateResponse("base.html", {"request": request, "log_list": logs})
 
 @app.post("/add")
-def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> EntryCreated:
+def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
+  """
+  Adding per html fomrular
+  """
   # Create a new item
-  entry_id = crud.create_logdb_entry(db)
+  entry_id = crud.create_logdb_entry(db=db)
   log_entry_data = schemas.LogEntryCreate(logdb_id=entry_id, entry=log_entry)
-  data_id = crud.create_entry(db, log=log_entry_data)
-  response_data = {"EntryCreated": data_id}
-  return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=response_data)
+  data_id = crud.create_entry(db=db, log=log_entry_data)
+  url = app.url_path_for("home")
+  return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
+# deleting work still need to understand the relationship in models
+@app.get("/delete/{log_id}")
+def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
+  """
+  delting log entry
+  checking befor if entry even exits
+  """
+  log = crud.check_entry_exists(db=db, log_id=log_id)
+  if log is None:
+    url = app.url_path_for("home")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log entry not found")
 
-# @app.post("/add")
-# def add(request: Request, log: schemas.LogEntryCreate, log_entry: str = Form(...), db: Session= Depends(get_db)) -> EntryCreated:
-#   # Create a new item
-#   entry_id = crud.create_logdb_entry(db)
-#   data_id = crud.create_logdb_entry(db, log, entry_id, log_entry)
-#   return Response(status_code=status.HTTP_201_CREATED, media_type='Entry added: {data_id}')
+  crud.delete_log_entry(db=db, log_id=log_id) 
+  # redirecting to homepage
+  url = app.url_path_for("home")
+  return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
-# update existing todo entry
-# inverse log_reviewed entry 
 @app.put("/update/{log_id}") 
 def update(request: Request, log_id: int, db: Session = Depends(get_db)):
+  """
+  update with html interface
+  update existing todo entry
+  inverse log_reviewed entry 
+  """  
   log = db.query(models.Logdb).filter(models.Logdb.id == log_id).first()
   # reseting boolean of db model
-  log.log_reviewed = not log.log_reviewed
+  #log.log_reviewed = not log.log_reviewed
   db.commit()
 
   # redirecting to homepage
   url = app.url_path_for("home")
   return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
-
-# delte route
-@app.get("/delte/{log_id}")
-def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
-  log = db.query(models.Logdb).filter(models.Logdb.id == log_id).first()
-  db.delete(log)
-  db.commit()
-
-  # redirecting to homepage
-  url = app.url_path_for("home")
-  return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 # Enable debug mode
 if __name__ == "__main__":

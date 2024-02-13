@@ -26,7 +26,7 @@
 
         {% for log in log_list %}
         <div class="ui segment">
-            <p class="ui big header">{{ log.id }} | {{ log.log_entry }}</p>
+            <p class="ui big header">{{ log.id }} | {{ log.ts }}</p>
 
             {% if log.log_reviewed == False %}
             <span class="ui gray label">Not Complete</span>
