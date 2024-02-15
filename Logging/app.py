@@ -41,23 +41,26 @@ def get_db():
 #    API FUNCTIONS
 ##################################################################################################################################################################    
 @app.post("/api/v1/add")
-def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
-  # Create a new item
-  entry_id = crud.create_logdb_entry(db=db)
-  log_entry_data = schemas.LogEntryCreate(logdb_id=entry_id, entry=log_entry)
-  data_id = crud.create_entry(db=db, log=log_entry_data)
-  response_data = {"EntryCreated": data_id}
-  return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=response_data)
+# async def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
+async def add(log_entry :schemas.CreateLogEntry, db: Session= Depends(get_db)) -> schemas.LogEntryCreated:
+  """
+  Creating new Item API Endpoint
+  based on schmea for request
+
+  """
+  response_data = crud.create_entry(db=db, log=log_entry)
+  response_data = {"EntryCreated": response_data.id}
+  return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=jsonable_encoder(response_data))
 
 @app.get("/api/v1/entry/{log_id}") 
-def entry_data(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogData:
+def entry_data(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogEntryData:
   """
   gets all data of 1 Entry 
   """
   response_data = crud.get_entry_data(db=db, log_id=log_id)
-  
+
   if response_data is None:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="{log_id} not found") 
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="{log_id} not found")  
   
   return JSONResponse(status_code=status.HTTP_302_FOUND, media_type='application/json', content=jsonable_encoder(response_data))
 
@@ -89,20 +92,18 @@ def home(request: Request, db: Session = Depends(get_db)):
 
   todo add a macx amount and pages
   """
-  logs = db.query(models.Logdb).all()
+  logs = db.query(models.LogEntry).all()
   return templates.TemplateResponse("base.html", {"request": request, "log_list": logs})
 
 @app.post("/add")
-def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
+def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreated:
   """
   Adding per html fomrular
   """
   # Create a new item
-  entry_id = crud.create_logdb_entry(db=db)
-  log_entry_data = schemas.LogEntryCreate(logdb_id=entry_id, entry=log_entry)
-  data_id = crud.create_entry(db=db, log=log_entry_data)
+  data = crud.create_entry_user(db=db, log=log_entry)
   url = app.url_path_for("home")
-  return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
+  return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND )
 
 
 # deleting work still need to understand the relationship in models
@@ -127,10 +128,8 @@ def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
 def update(request: Request, log_id: int, db: Session = Depends(get_db)):
   """
   update with html interface
-  update existing todo entry
-  inverse log_reviewed entry 
   """  
-  log = db.query(models.Logdb).filter(models.Logdb.id == log_id).first()
+  log = db.query(models.LogEntry).filter(models.LogEntry.id == log_id).first()
   # reseting boolean of db model
   #log.log_reviewed = not log.log_reviewed
   db.commit()

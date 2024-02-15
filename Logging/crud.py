@@ -2,26 +2,35 @@ from sqlalchemy.orm import Session
 
 import models, schemas
 
-def create_logdb_entry(db: Session):
-  """
-  create Entry in logdb table
-  """
-  new_log = models.Logdb()
-  db.add(new_log)
-  db.commit()
-  db.refresh(new_log)
-  return new_log.id
+#def create_logdb_entry(db: Session):
+#  """
+#  create Entry in logdb table
+#  """
+#  new_log = models.Logdb()
+#  db.add(new_log)
+#  db.commit()
+#  db.refresh(new_log)
+#  return new_log.id
 
-def create_entry(db: Session, log: schemas.LogEntryCreate):
+def create_entry_user(db: Session, log: str):
   """
   create Entry in LogEntry table
   """
-
-  new_entry = models.LogEntry(logdb_id=log.logdb_id, entry=log.entry, code=log.code, app_id=log.app_id)
+  new_entry = models.LogEntry(entry=log)
   db.add(new_entry)
   db.commit()
   db.refresh(new_entry)
   return new_entry.id
+
+def create_entry(db: Session, log: schemas.CreateLogEntry):
+  """
+  create Entry in LogEntry table
+  """
+  new_entry = models.LogEntry(entry=log.entry, code=log.code, app_id=log.app_id)
+  db.add(new_entry)
+  db.commit()
+  db.refresh(new_entry)
+  return new_entry
 
 def delete_log_entry(db: Session, log_id: int):
   """
