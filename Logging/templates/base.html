@@ -28,14 +28,15 @@
         <div class="ui segment">
             <p class="ui big header">{{ log.id }} | {{ log.ts }}</p>
 
-            {% if log.log_reviewed == False %}
+            {% if log.reviewed == False %}
             <span class="ui gray label">Not Complete</span>
             {% else %}
             <span class="ui green label">Completed</span>
             {% endif %}
 
-            <a class="ui blue button" href="/update/{{ log.id }}">Update</a>
-            <a class="ui red button" href="/delete/{{ log.id }}">Delete</a>
+            <a class="ui yellow button" href="/entry/{{ log.id }}">Show</a>
+<!--        <a class="ui blue button" href="/update/{{ log.id }}">Update</a>-->
+            <a class="ui red button" href="/delete/{{ log.id }}">Delete</a>   
         </div>
         {% endfor %}
     </div>

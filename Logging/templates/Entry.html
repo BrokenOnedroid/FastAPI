@@ -4,12 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entry Data</title>
+    <title>Log Data</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
 </head>
+<body>  
+    <div id="log_info" style="margin-top: 50px;" class="ui container">
+        <!-- Log data will be displayed here -->
+        {% if log_data %}
+            <h2>Log Details</h2>
+            <h3>ID:</h3>  
+            <p>{{ log_data.id }}</p> 
+            
+            <h3>Log Text:</h3>
+            <p>{{ log_data.entry }}</p>
 
-<body>
-    
+            <h3>Logging - Code: </h3>
+            <p>{{ log_data.code }}</p>
 
+            <h3>App:</h3>
+            <p> {{ log_data.app_id }}</p>
+
+            <h3>Created:</h3>
+            <p> {{ log_data.ts }}</p>
+
+            <h3>Last Change:</h3>
+            <p>{{ log_data.ts_last_change }}</p>
+
+            <h3>Reviewed:</h3>
+            <p> {{ log_data.reviewed }}</p>
+
+            <h3>Review Comment:</h3>
+            <p>{{ log_data.review_comment }}</p>            
+            <!-- Add more fields as needed -->
+            
+        {% endif %}
+
+        <a class="ui green button" href="/">Back</a>
+
+        <!-- CSS for Style?! for base i was copy out of the to do app -->
+    </div>
 </body>
-
-</html> 
+</html>

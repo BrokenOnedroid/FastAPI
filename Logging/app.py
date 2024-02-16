@@ -1,9 +1,10 @@
 import logging
 from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 
 # ASGI Framework
-from starlette.responses import RedirectResponse, Response, JSONResponse
+from starlette.responses import RedirectResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 
 #Jspon Return for schemas.LogEntyData
@@ -94,6 +95,16 @@ def home(request: Request, db: Session = Depends(get_db)):
   """
   logs = db.query(models.LogEntry).all()
   return templates.TemplateResponse("base.html", {"request": request, "log_list": logs})
+
+@app.get("/entry/{id}")
+def get_entry_form(request: Request, id: int, db: Session = Depends(get_db)):
+  """
+  homepage function gets one entries
+
+  display it on Entry.html
+  """
+  log_data = crud.get_entry_data(db=db, log_id=id)
+  return templates.TemplateResponse("Entry.html", {"request": request, "log_data": log_data})
 
 @app.post("/add")
 def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreated:
