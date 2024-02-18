@@ -2,7 +2,12 @@
 
 Test Project
 "Logging" to a DB
-So i can post result of programms into a db to controll them later
+
+## AIM
+
+Creating a replacement for openmediavault email messages
+
+Using docker
 
 ## Preperation Steps
 
@@ -31,8 +36,9 @@ So i can post result of programms into a db to controll them later
     2. App Get List
     3. Entry Add func
     4. entry Delete func
-5. automatic Database migration after db Changes
-6. Changing the function to use the schemas instead of something like "request: Request, **params" IF it is a POST GET does NOT have a Body
+4. automatic Database migration after db Changes
+5. Changing the function to use the schemas instead of something like "request: Request, **params" IF it is a POST GET does NOT have a Body
+6. Container https://fastapi.tiangolo.com/deployment/docker/
 
 ## Done
 
