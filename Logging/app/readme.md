@@ -7,6 +7,9 @@ Test Project
 
 Creating a replacement for openmediavault email messages
 
+curl -X 'POST' 'http://127.0.0.1:8000/api/v1/add' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"entry": "$(sudo docker cp dockerid:/usr/src/paperless/export -)" "app_id": 1 }'
+
+
 Using docker
 
 ## Preperation Steps
@@ -25,9 +28,10 @@ Using docker
 
 ## todo
 
-1. postgre Database?
-    1. User Login
-    2. different User rights
+1. Database Changes (not needed for what i want to do)
+    1. User Login ??
+    2. different User rights ??
+    3. postgre ??
 2. HTML files
     1. for Apps
     2. Filter on homepage
@@ -55,3 +59,13 @@ curl -X 'POST' '<http://127.0.0.1:8000/api/v1/add>' -H 'accept: application/json
 ## To Check
 
 the use of -> schemas.LogEntryCreated in func does not reduce the send data
+
+## Docker
+
+changed folder structur because of the instructions of folleoing link
+
+see https://fastapi.tiangolo.com/deployment/docker/
+
+Created https://fastapi.tiangolo.com/deployment/docker/ && requirements.txt
+
+get info for Version via pip list --local in local directory
