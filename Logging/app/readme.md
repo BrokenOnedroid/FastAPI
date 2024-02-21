@@ -15,6 +15,7 @@ Using docker
 ## Preperation Steps
 
 1. python3 -m venv venv
+2. cd app       Cause i using vscode with open folder Logging
 2. .\venv\Scripts\activate
 3. pip install fastapi
 4. pip install "uvicorn[standard]"

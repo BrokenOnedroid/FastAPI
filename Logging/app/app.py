@@ -135,14 +135,14 @@ def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
   return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
-@app.put("/update/{log_id}") 
+@app.post("/update/{log_id}") 
 def update(request: Request, log_id: int, db: Session = Depends(get_db)):
   """
   update with html interface
   """  
   log = db.query(models.LogEntry).filter(models.LogEntry.id == log_id).first()
-  # reseting boolean of db model
-  #log.log_reviewed = not log.log_reviewed
+  # reseting boolean of db model for reviewed value
+  log.reviewed = not log.reviewed
   db.commit()
 
   # redirecting to homepage
