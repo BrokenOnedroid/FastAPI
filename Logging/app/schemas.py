@@ -5,7 +5,6 @@ from datetime import date, datetime, time, timedelta
 from typing import Optional
 
 # for  Pydantic models that define more or less a "schema" (a valid data shape).
-
 from pydantic import BaseModel, StrictStr
 
 class CreateLogEntry(BaseModel):

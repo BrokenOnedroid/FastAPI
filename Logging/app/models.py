@@ -1,14 +1,12 @@
 #database table definitionsnow
 
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
-#func Datetime now
 from sqlalchemy.sql import func
 
 from sqlalchemy.orm import relationship
 
 # Base comes of database.py
-from database import Base
-
+from app.database import Base
 class LogEntry(Base):
     """
     Model for the log_entry table.
