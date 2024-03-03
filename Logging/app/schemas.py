@@ -9,14 +9,12 @@ from pydantic import BaseModel, StrictStr
 
 class CreateLogEntry(BaseModel):
     entry: StrictStr 
-    code: Optional[str] = None
-    app_id: Optional[int] = 0
+    app_name: Optional[str] = "unknown"
 
 class LogEntryCreated(BaseModel):
     log_id: int
     entry: str
-    code: str = ""
-    app_id: int = 0
+    app_name: str 
 
 class LogEntry(BaseModel):
     log_id: int
@@ -26,10 +24,9 @@ class LogEntryDelete(BaseModel):
 
 class LogEntryData(BaseModel):
     id: int 
-    app_id: int
+    app_name: str
     ts_last_change: datetime = None         # cause i could be empty
     entry: str              
-    code: str
     reviewed: bool
     review_comment: str
 

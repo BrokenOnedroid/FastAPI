@@ -19,7 +19,7 @@ def create_entry(db: Session, log: CreateLogEntry):
   """
   create Entry in LogEntry table
   """
-  new_entry = LogEntry(entry=log.entry, code=log.code, app_id=log.app_id)
+  new_entry = LogEntry(entry=log.entry, app_name=log.app_name)
   db.add(new_entry)
   db.commit()
   db.refresh(new_entry)
@@ -48,3 +48,15 @@ def check_entry_exists(db: Session, log_id: int):
   log = db.query(LogEntry).filter(LogEntry.id == log_id).first()
   # log is None if the is no Entry
   return log
+
+def update_entry_data(db: Session, log_id: int, comment: str):
+  """
+  adding or updating comment setting revied = true
+  """
+  log = db.query(LogEntry).filter(LogEntry.id == log_id).first()
+  log.reviewed = True
+  log.review_comment = comment
+  db.commit()
+  db.refresh(log)
+
+

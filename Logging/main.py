@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, Depends, Request, Form, status, HTTPException
+from fastapi import FastAPI, Depends, Request, Form, status, HTTPException, Body
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 
@@ -18,11 +18,7 @@ from sqlalchemy.orm import Session
 
 # local .py 
 from app import crud, models, schemas
-
-#from app.schemas import LogEntryCreated, CreateLogEntry, LogEntryData, LogEntryDelete
 from app.database import SessionLocal, engine
-#from app.crud import create_entry, get_entry_data, check_entry_exists, delete_log_entry, create_entry_user
-#from app.models import LogEntry
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -45,8 +41,7 @@ def get_db():
 ##################################################################################################################################################################
 #    API FUNCTIONS
 ##################################################################################################################################################################    
-@app.post("/api/v1/add")
-# async def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreate:
+@app.post("/api/v1/add/")
 async def add(log_entry : schemas.CreateLogEntry, db: Session= Depends(get_db)) -> schemas.LogEntryCreated:
   """
   Creating new Item API Endpoint
@@ -57,7 +52,7 @@ async def add(log_entry : schemas.CreateLogEntry, db: Session= Depends(get_db)) 
   response_data = {"EntryCreated": response_data.id}
   return JSONResponse(status_code=status.HTTP_201_CREATED, media_type='application/json', content=jsonable_encoder(response_data))
 
-@app.get("/api/v1/entry/{log_id}") 
+@app.get("/api/v1/entry/{log_id}/") 
 def entry_data(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogEntryData:
   """
   gets all data of 1 Entry 
@@ -70,8 +65,7 @@ def entry_data(request: Request, log_id: int, db: Session = Depends(get_db)) -> 
   return JSONResponse(status_code=status.HTTP_302_FOUND, media_type='application/json', content=jsonable_encoder(response_data))
 
 # delete route API
-# Works with e.g. curl -X DELETE http://127.0.0.1:8000/api/v1/delete/1
-@app.delete("/api/v1/delete/{log_id}")
+@app.delete("/api/v1/delete/{log_id}/")
 def delte(request: Request, log_id: int, db: Session = Depends(get_db)) -> schemas.LogEntryDelete:
   """
   delting log entry
@@ -100,7 +94,7 @@ def home(request: Request, db: Session = Depends(get_db)):
   logs = db.query(models.LogEntry).all()
   return templates.TemplateResponse("base.html", {"request": request, "log_list": logs})
 
-@app.get("/entry/{id}")
+@app.get("/entry/{id}/")
 def get_entry_form(request: Request, id: int, db: Session = Depends(get_db)):
   """
   homepage function gets one entries
@@ -110,20 +104,20 @@ def get_entry_form(request: Request, id: int, db: Session = Depends(get_db)):
   log_data = crud.get_entry_data(db=db, log_id=id)
   return templates.TemplateResponse("Entry.html", {"request": request, "log_data": log_data})
 
-@app.post("/add")
+@app.post("/add/")
 def add(request: Request, log_entry: str = Form(...), db: Session= Depends(get_db)) -> schemas.LogEntryCreated:
   """
   Adding per html fomrular
   """
   # Create a new item
-  data = crud.create_entry_user(db=db, log=log_entry)
+  crud.create_entry_user(db=db, log=log_entry)
   url = app.url_path_for("home")
   return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND )
 
 
 # deleting work still need to understand the relationship in models
-@app.get("/delete/{log_id}")
-def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
+@app.get("/delete/{log_id}/")
+def delete(request: Request, log_id: int, db: Session = Depends(get_db)):
   """
   delting log entry
   checking befor if entry even exits
@@ -139,13 +133,24 @@ def delte(request: Request, log_id: int, db: Session = Depends(get_db)):
   return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
-@app.post("/update/{log_id}") 
+@app.post("/update/{log_id}/") 
+async def update(request: Request, log_id: int, comment: str = Form(...), db: Session = Depends(get_db)):
+  """
+  update with html interface
+  """
+
+  crud.update_entry_data(db=db, log_id=log_id, comment=comment)
+
+  log_data = crud.get_entry_data(db=db, log_id=log_id)
+  return templates.TemplateResponse("Entry.html", {"request": request, "log_data": log_data})
+
+
+@app.post("/update_status/{log_id}/") 
 def update(request: Request, log_id: int, db: Session = Depends(get_db)):
   """
   update with html interface
   """  
   log = db.query(models.LogEntry).filter(models.LogEntry.id == log_id).first()
-  # reseting boolean of db model for reviewed value
   log.reviewed = not log.reviewed
   db.commit()
 

@@ -13,6 +13,14 @@
         .ui.form {
             display: inline-block; /* Set the form display to inline-block */
         }
+        
+/*         body {
+            padding: 25px;
+            background-color: black;    
+            color: white;
+            font-size: 25px;
+        }
+*/
     </style>
 </head>
 
@@ -41,10 +49,13 @@
             {% endif %}
             
             <a class="ui blue button" href="/entry/{{ log.id }}">Show</a>
-            <form class="ui form" action="/update/{{ log.id }}" method="post">
+
+            <form class="ui form" action="/update_status/{{ log.id }}" method="post">
                 <button class="ui dark yellow button" type="submit">Update</button>
             </form> 
+
             <a class="ui red button" href="/delete/{{ log.id }}">Delete</a>   
+
         </div>
         {% endfor %}
     </div>
